@@ -57,15 +57,15 @@
     #frances-avatar-wrap { width: calc(100vw - 40px); height: 60vh; max-height: 480px; }
   }
 
-  /* IMAGEM DE CAPA - Deixa a parte de baixo do botão livre */
+  /* SUA FOTO */
   #frances-cover {
     position: absolute;
     top: 0; left: 0; right: 0;
-    bottom: 85px; /* Altura aproximada para deixar o botão do LiveLayer exposto */
+    bottom: 85px;
     background: url('frances.png') center/cover no-repeat;
     z-index: 2;
     pointer-events: none; 
-    transition: opacity 0.4s ease;
+    transition: opacity 0.3s ease;
   }
   #frances-cover.hidden { opacity: 0; }
 </style>
@@ -87,6 +87,7 @@
         allow="microphone;camera"
         title="Avatar Frances"
       ></iframe>
+      
       <div id="frances-cover"></div>
     </div>
   </div>
@@ -98,6 +99,7 @@
   <script>
     (function () {
       var cover = document.getElementById('frances-cover');
+      var wrap = document.getElementById('frances-avatar-wrap');
       var hidden = false;
 
       function hideCover() {
@@ -106,37 +108,34 @@
         cover.classList.add('hidden');
         setTimeout(function() {
           if (cover && cover.parentNode) cover.parentNode.removeChild(cover);
-        }, 500);
+        }, 400);
       }
 
-      // Monitora o microfone para esconder a imagem APENAS quando houver som
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
-        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        var analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 512;
-        var dataArray = new Uint8Array(analyser.frequencyBinCount);
-        var source = audioCtx.createMediaStreamSource(stream);
-        source.connect(analyser);
-
-        function checkAudio() {
-          if (hidden) return;
-          analyser.getByteFrequencyData(dataArray);
-          var sum = 0;
-          for (var i = 0; i < dataArray.length; i++) {
-            sum += dataArray[i];
-          }
-          var average = sum / dataArray.length;
-
-          if (average > 15) { 
-            hideCover();
-          } else {
-            requestAnimationFrame(checkAudio);
-          }
+      // Evento global no document com capture: true.
+      // Isso captura o clique ANTES de chegar no iframe.
+      document.addEventListener('pointerdown', function (e) {
+        if (!wrap.contains(e.target)) return;
+        
+        var rect = wrap.getBoundingClientRect();
+        var y = e.clientY - rect.top;
+        
+        if (y > rect.height - 85) {
+          hideCover();
         }
-        checkAudio();
-      }).catch(function (err) {
-        console.log("Microfone não autorizado.");
-      });
+      }, true);
+
+      document.addEventListener('touchstart', function (e) {
+        if (!wrap.contains(e.target)) return;
+        
+        var rect = wrap.getBoundingClientRect();
+        var t = e.touches[0];
+        var y = t.clientY - rect.top;
+        
+        if (y > rect.height - 85) {
+          hideCover();
+        }
+      }, { passive: true, capture: true });
+
     })();
   </script>
 
