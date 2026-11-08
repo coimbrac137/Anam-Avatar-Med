@@ -1,0 +1,13 @@
+anam-agent:session-started → chamada começou (com sessionId)
+
+anam-agent:session-ended → chamada terminou (com reason)
+
+anam-agent:message-received → transcrição
+
+anam-agent:error → erros
+
+anam-agent:mic-muted / mic-unmuted → controle de mic
+
+------------------------------------
+
+A gente ta Usando a : https://lab.anam.ai/  
