@@ -172,8 +172,8 @@
   <div id="end-modal" class="notranslate" translate="no">
     <div class="box">
       <h2>Consulta encerrada</h2>
-      <p>Obrigado pela simulação. Você pode iniciar uma nova consulta quando quiser.</p>
-      <button id="end-close">Fechar</button>
+      <p>Obrigado pela simulação. Aguarde a publicação do seu perfil.</p>
+      <button id="end-close">Ver relatório</button>
     </div>
   </div>
 
@@ -194,6 +194,9 @@
       // Cronômetro
       var tickInterval = null;
       var elapsedMs = 0;
+
+      // Transcrições
+      var messages = [];
 
       function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
@@ -219,6 +222,18 @@
           clearInterval(tickInterval);
           tickInterval = null;
         }
+      }
+
+      function goToReport() {
+        try {
+          sessionStorage.setItem('consultReport', JSON.stringify({
+            durationMs: elapsedMs,
+            messages: messages
+          }));
+        } catch (err) {
+          console.log('erro ao salvar relatório:', err);
+        }
+        window.location.href = 'relatorio.html';
       }
 
       // Procura recursivamente dentro de shadow roots pelo botão de encerrar (X)
@@ -312,10 +327,19 @@
           if (endTimer) { clearTimeout(endTimer); endTimer = null; }
           modal.classList.add('show');
         });
+
+        widget.addEventListener('anam-agent:message-received', function (e) {
+          console.log('mensagem recebida:', e.detail);
+          var d = e.detail || {};
+          var text = d.text || d.content || d.transcript || d.message || '';
+          if (text && typeof text === 'string' && text.trim()) {
+            messages.push(text.trim());
+          }
+        });
       }
 
       closeBtn.addEventListener('click', function () {
-        modal.classList.remove('show');
+        goToReport();
       });
 
       attach();

@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Relatório de Nível de Inglês</title>
+<meta name="google" content="notranslate">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', Arial, sans-serif; background: #f4f5f7; color: #000;
+    -webkit-font-smoothing: antialiased; min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+
+  .page-header { background: #000; color: #fff; position: relative; height: 95px; display: flex; align-items: center; flex-shrink: 0; }
+  .back-btn { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; align-items: center; text-decoration: none; height: 100%; }
+  .back-btn img { height: 65px; width: auto; display: block; padding-left: 15px; }
+
+  .page-content {
+    flex: 1 1 auto;
+    display: flex; justify-content: center;
+    padding: 24px 20px 60px;
+  }
+
+  .page-footer { background: #000; color: #fff; height: 95px; flex-shrink: 0; }
+
+  @media (max-width: 480px) {
+    .page-header { height: 65px; }
+    .back-btn img { height: 38px; padding-left: 10px; }
+    .page-footer { height: 65px; }
+  }
+
+  .report-wrap {
+    width: 100%;
+    max-width: 760px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    padding: 24px;
+  }
+
+  .report-title {
+    font-family: 'Poppins', 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0d0d0d;
+    margin-bottom: 4px;
+  }
+  .report-subtitle {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 0;
+  }
+
+  .loading-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 40px 0;
+    text-align: center;
+  }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 4px solid #e6e6e6;
+    border-top-color: #0d0d0d;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text {
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+  }
+  .loading-sub {
+    font-size: 13px;
+    color: #999;
+  }
+
+  #report-content { display: none; }
+  #report-content.ready { display: flex; flex-direction: column; gap: 18px; }
+
+  .level-hero {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+  }
+  .level-badge {
+    flex-shrink: 0;
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    background: #0d0d0d;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Poppins', sans-serif;
+  }
+  .level-badge .lvl { font-size: 34px; font-weight: 700; line-height: 1; }
+  .level-badge .lbl { font-size: 11px; letter-spacing: 1px; opacity: 0.7; margin-top: 4px; text-transform: uppercase; }
+
+  .level-info h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .level-info p {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.45;
+  }
+
+  .score-bar-wrap { margin-top: 20px; }
+  .score-bar-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 13px; color: #555; margin-bottom: 8px;
+  }
+  .score-bar-head strong { font-size: 16px; color: #0d0d0d; }
+  .score-bar {
+    height: 12px; border-radius: 999px; background: #ececec; overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(90deg, #0d0d0d, #444);
+    transition: width 0.9s ease;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 4px;
+  }
+  @media (max-width: 480px) { .metrics-grid { grid-template-columns: 1fr; } }
+
+  .metric {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .metric .m-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px;
+    color: #888; font-weight: 600; margin-bottom: 6px;
+  }
+  .metric .m-value {
+    font-size: 18px; font-weight: 700; color: #0d0d0d;
+  }
+  .metric .m-hint {
+    font-size: 12px; color: #888; margin-top: 2px;
+  }
+
+  .eval-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #333;
+    white-space: pre-line;
+  }
+  .eval-text strong { color: #0d0d0d; }
+
+  .status-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    border-radius: 12px;
+    font-family: 'Inter', Arial, sans-serif;
+  }
+  .status-box .icon {
+    flex-shrink: 0;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 18px;
+  }
+  .status-box h4 {
+    font-size: 16px; font-weight: 600; margin-bottom: 4px;
+  }
+  .status-box p {
+    font-size: 13px; line-height: 1.4;
+  }
+  .status-box.approved { background: #e8f5e9; }
+  .status-box.approved .icon { background: #2e7d32; }
+  .status-box.approved h4 { color: #1b5e20; }
+  .status-box.approved p { color: #2e7d32; }
+
+  .status-box.rejected { background: #fff3e0; }
+  .status-box.rejected .icon { background: #e65100; }
+  .status-box.rejected h4 { color: #bf360c; }
+  .status-box.rejected p { color: #e65100; }
+
+  .status-box.blocked { background: #ffebee; }
+  .status-box.blocked .icon { background: #c62828; }
+  .status-box.blocked h4 { color: #b71c1c; }
+  .status-box.blocked p { color: #c62828; }
+
+  .actions {
+    display: flex; gap: 12px; margin-top: 4px;
+  }
+  .actions button {
+    flex: 1;
+    padding: 13px 16px;
+    font-size: 14px; font-weight: 500;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: 'Inter', Arial, sans-serif;
+    border: 1.5px solid #0d0d0d;
+    background: #fff;
+    color: #0d0d0d;
+  }
+  .actions button.primary {
+    background: #0d0d0d;
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+  <div class="page-header notranslate" translate="no" id="pageHeader">
+    <a href="#" class="back-btn"><img src="logo55.png" alt="Logo"></a>
+  </div>
+
+  <div class="page-content">
+    <div class="report-wrap">
+
+      <!-- LOADING -->
+      <div class="card" id="loading-card">
+        <div class="loading-box">
+          <div class="spinner"></div>
+          <div class="loading-text">Aguarde a publicação do seu perfil…</div>
+          <div class="loading-sub" id="loading-sub">Analisando a consulta em andamento</div>
+        </div>
+      </div>
+
+      <!-- REPORT -->
+      <div id="report-content">
+        <div class="card">
+          <div class="report-title">Relatório de Nível de Inglês</div>
+          <p class="report-subtitle">Resultado simulado com base na sua participação na consulta.</p>
+
+          <div class="level-hero" style="margin-top:22px;">
+            <div class="level-badge">
+              <div class="lvl" id="level-code">—</div>
+              <div class="lbl">CEFR</div>
+            </div>
+            <div class="level-info">
+              <h3 id="level-name">—</h3>
+              <p id="level-desc">—</p>
+            </div>
+          </div>
+
+          <div class="score-bar-wrap">
+            <div class="score-bar-head">
+              <span>Score geral</span>
+              <strong id="score-value">0%</strong>
+            </div>
+            <div class="score-bar"><div class="score-bar-fill" id="score-fill"></div></div>
+          </div>
+
+          <div class="metrics-grid" style="margin-top:22px;">
+            <div class="metric">
+              <div class="m-label">Tempo de fala</div>
+              <div class="m-value" id="m-time">00:00</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">Palavras ditas</div>
+              <div class="m-value" id="m-words">0</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">Frase média</div>
+              <div class="m-value" id="m-sentence">0 palavras</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">Diversidade</div>
+              <div class="m-value" id="m-diversity">0%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="report-title" style="font-size:17px;margin-bottom:14px;">Avaliação detalhada</div>
+          <div class="eval-text" id="eval-text">—</div>
+        </div>
+
+        <div class="card" id="status-card" style="padding:0;background:transparent;box-shadow:none;">
+          <div class="status-box" id="status-box">
+            <div class="icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div>
+              <h4 id="status-title">—</h4>
+              <p id="status-desc">—</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions" id="actions-approved" style="display:none;">
+          <button id="btn-finish" class="primary">Finalizar</button>
+        </div>
+
+        <div class="actions" id="actions-rejected" style="display:none;">
+          <button id="btn-retry" class="primary">Realizar consulta novamente</button>
+        </div>
+
+        <div class="actions" id="actions-blocked" style="display:none;">
+          <button id="btn-blocked" class="primary">Entendi</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="page-footer notranslate" translate="no"></div>
+
+  <script>
+    (function () {
+      // ========== CONFIG ==========
+      var EXPECTED_TIME_SEC = 120;
+      var EXPECTED_WORDS = 120;
+      var KEYWORDS = [
+        'symptom', 'symptoms', 'pain', 'history', 'medication',
+        'allergy', 'allergies', 'fever', 'cough', 'headache',
+        'treatment', 'exam', 'blood', 'pressure', 'doctor'
+      ];
+
+      var MAX_ATTEMPTS = 2;
+      var BLOCK_MS = 72 * 60 * 60 * 1000;
+
+      var LEVELS = [
+        {
+          min: 0, code: 'A1', name: 'Iniciante',
+          short: 'Compreensão limitada. Frases curtas e vocabulário básico, com dificuldade para manter uma conversa.',
+          texts: [
+            'Sua participação na consulta demonstrou um domínio inicial do inglês. Você utilizou frases curtas e um vocabulário bastante restrito, com dificuldade em construir ideias mais longas ou encadear informações durante a conversa. É comum, nesse estágio, depender de palavras isoladas e de estruturas muito simples para se comunicar. Recomendamos prática diária de vocabulário básico (cumprimentos, sintomas, partes do corpo) e exercícios de escuta com frases curtas. A repetição de diálogos prontos ajuda a ganhar confiança. Trabalhe a pronúncia de palavras essenciais do contexto médico e amplie, aos poucos, o repertório de expressões do dia a dia. Com consistência, você passará rapidamente ao próximo nível.',
+            'Nesta consulta, você se comunicou usando estruturas muito básicas e um vocabulário limitado. As frases foram curtas e houve pausas frequentes para encontrar as palavras adequadas. A compreensão geral ficou restrita a comandos simples e perguntas diretas. Para evoluir, sugerimos focar em ampliar o vocabulário essencial da área da saúde, treinar small talk (cumprimentos e despedidas) e praticar a formação de frases completas com sujeito e verbo. Ouvir diálogos curtos em inglês e repetir em voz alta é uma boa estratégia. Priorize também a familiarização com perguntas comuns de consulta. O progresso virá com prática consistente e exposição ao idioma.',
+            'Seu desempenho nesta simulação ficou no nível iniciante. Você conseguiu se fazer entender em pontos muito pontuais, mas a comunicação ficou limitada a palavras soltas e frases curtas, com pouco encadeamento de ideias. A dificuldade em construir frases completas e o vocabulário reduzido impactaram a fluidez da consulta. Recomendamos que você comece com um plano estruturado: 10 minutos diários de vocabulário, 10 minutos de escuta ativa e 10 minutos de fala em voz alta. Foque em expressões do contexto médico e em perguntas frequentes de anamnese. Aos poucos, você ganhará segurança e ampliará sua capacidade de resposta. Continue praticando, o avanço vem com repetição.',
+            'O resultado indica um estágio inicial de proficiência. Sua fala foi marcada por frases muito curtas, vocabulário básico e dificuldade em manter um diálogo contínuo. A compreensão de perguntas mais elaboradas ficou comprometida, e a produção oral se limitou a respostas simples e diretas. Para progredir, é importante investir em vocabulário temático (sintomas, medicações, histórico) e em estruturas gramaticais básicas do presente e passado. Pratique a construção de frases mais longas conectando ideias com "and", "but" e "because". Exposição diária ao idioma e repetição de diálogos modelo vão acelerar sua evolução. Mantenha o foco e a constância.'
+          ]
+        },
+        {
+          min: 20, code: 'A2', name: 'Básico',
+          short: 'Consegue se comunicar em situações simples e familiares. Vocabulário ainda restrito.',
+          texts: [
+            'Você demonstrou um domínio básico do inglês durante a consulta. Conseguiu se comunicar em situações familiares, especialmente ao relatar sintomas e responder perguntas diretas. No entanto, o vocabulário ainda é restrito, e estruturas mais complexas (tempos verbais compostos, condicionais, conectivos) ainda não aparecem com naturalidade. Houve pausas e reformulações, mas a comunicação foi possível. Para evoluir, sugerimos ampliar o vocabulário com foco em expressões do contexto clínico e treinar frases mais longas. Praticar a escuta de diálogos médicos em inglês e repetir em voz alta ajudará na fluência. O próximo passo é aumentar a confiança e o repertório sem perder a clareza.',
+            'Sua comunicação ficou no nível básico. Você foi capaz de responder perguntas simples e relatar informações objetivas, o que mostra progresso importante. Ainda assim, a diversidade de vocabulário foi limitada e houve repetição de estruturas. A fluidez ficou comprometida em momentos que exigiam explicações mais longas. Recomendamos trabalhar tempos verbais além do presente (passado simples, futuro com "will" e "going to") e conectivos básicos como "however", "also" e "because". A prática com diálogos de anamnese em inglês é excelente para ampliar repertório. Mantenha o hábito de ouvir e repetir — a consistência trará o salto para o próximo nível.',
+            'O resultado da simulação indica nível básico de proficiência. Você conseguiu estabelecer comunicação em contextos previsíveis, com respostas diretas e vocabulário limitado. As frases foram relativamente curtas, e a estrutura gramatical ainda apresentou erros que não impediram a compreensão, mas limitaram a fluidez. Para aprimorar, foque em ampliar o vocabulário ativo com termos do contexto médico, treinar a construção de frases mais elaboradas e revisar estruturas gramaticais básicas. A prática com role-play de consultas é especialmente útil. Além disso, ouvir podcasts para iniciantes e assistir a séries com legenda em inglês aumentará sua exposição ao idioma. Continue praticando com regularidade.',
+            'Seu desempenho ficou no patamar básico. A comunicação foi funcional em contextos simples, mas limitada por vocabulário restrito e estruturas gramaticais ainda em formação. Você consegue se fazer entender, o que é positivo, mas a fluidez e a naturalidade ainda precisam ser trabalhadas. Para evoluir, sugerimos aumentar o tempo de exposição ao inglês, praticar a fala em voz alta diariamente e construir um vocabulário temático consistente. Foque em conectivos, tempos verbais e expressões idiomáticas básicas do dia a dia. Participar de conversas guiadas em plataformas de intercâmbio também ajuda bastante. Com dedicação regular, você alcançará o próximo nível em pouco tempo.'
+          ]
+        },
+        {
+          min: 40, code: 'B1', name: 'Intermediário',
+          short: 'Comunicação funcional em contextos conhecidos. Comete erros, mas se faz entender.',
+          texts: [
+            'Você demonstrou um domínio intermediário do inglês. Conseguiu se comunicar de forma funcional em contextos conhecidos, especialmente ao descrever sintomas, explicar histórico e responder perguntas de acompanhamento. Houve erros gramaticais e algumas pausas, mas a comunicação fluiu. A estrutura das frases foi mais elaborada do que em níveis anteriores, mostrando progresso consistente. Para avançar, foque em ampliar o vocabulário técnico da área médica, praticar estruturas mais complexas (condicionais, discurso indireto) e aumentar a naturalidade nas respostas. Ouvir consultas simuladas e participar de conversas reais em inglês ajudará a ganhar fluidez. Mantenha a prática regular e o foco na clareza.',
+            'O nível identificado é intermediário. Sua comunicação foi clara e funcional, com boa capacidade de transmitir informações objetivas e responder perguntas. Ainda há erros gramaticais e momentos de hesitação, mas nada que comprometa seriamente o entendimento. Para evoluir ao próximo nível, é importante investir em três frentes: ampliar vocabulário com foco em expressões médicas, aumentar a complexidade das estruturas gramaticais e reduzir pausas por meio de prática oral regular. Sugerimos role-play de consultas em inglês, leitura de artigos simples da área da saúde e conversação com nativos ou parceiros de estudo. Com dedicação, o salto de qualidade virá.',
+            'Sua participação na consulta demonstrou nível intermediário. Você foi capaz de manter uma conversa funcional, descrever sintomas com detalhes razoáveis e responder perguntas com clareza. Os erros gramaticais ainda existem, mas não impediram a comunicação. A fluidez foi boa em momentos previsíveis, mas caiu em situações que exigiam explicações mais longas. Para aprimorar, sugerimos aumentar a exposição a diferentes sotaques, praticar construções mais complexas e revisar pontos gramaticais específicos. Trabalhar a autoconfiança na fala é fundamental nesse estágio. Continue investindo em prática diária e em contextos variados de uso do inglês — o próximo nível está ao alcance.',
+            'O resultado indica proficiência intermediária. Você conseguiu se comunicar com clareza em situações previsíveis, demonstrando vocabulário razoável e estruturas gramaticais funcionais. Ainda há espaço para melhorar em fluidez e naturalidade, especialmente em contextos mais complexos. Sugerimos focar em ampliar o vocabulário ativo, praticar estruturas condicionais e discurso indireto, e aumentar a exposição a diálogos autênticos em inglês. Role-play de consultas médicas, leitura de casos clínicos simples e conversação regular são excelentes ferramentas. Reforce também o estudo de phrasal verbs comuns na área da saúde. Com consistência, você rapidamente alcançará o nível intermediário alto.'
+          ]
+        },
+        {
+          min: 55, code: 'B2', name: 'Intermediário Alto',
+          short: 'Boa fluência em conversas do dia a dia. Vocabulário razoável e frases mais elaboradas.',
+          texts: [
+            'Você demonstrou um nível intermediário alto de proficiência. Sua comunicação foi fluida em contextos variados, com vocabulário razoável e frases bem estruturadas. Conseguiu manter o ritmo da consulta, explicar informações com clareza e responder perguntas de acompanhamento sem grandes dificuldades. Ainda é possível notar pequenos erros gramaticais e momentos pontuais de hesitação, mas nada que comprometa o entendimento geral. Para evoluir ao nível avançado, sugerimos aprofundar o vocabulário técnico, praticar construções mais sofisticadas e aumentar a naturalidade da fala. Exposição a conteúdo autêntico (podcasts médicos, séries, artigos) e conversação regular são fundamentais. Continue assim, o avanço é questão de tempo.',
+            'Seu desempenho ficou no patamar intermediário alto. A comunicação foi clara, fluida e bem organizada, com vocabulário consistente e boa variedade de estruturas gramaticais. Você conseguiu transmitir informações complexas com razoável naturalidade, o que mostra evolução significativa. Ainda há pontos a trabalhar: maior precisão gramatical, ampliação do vocabulário idiomático e desenvolvimento da espontaneidade em situações imprevisíveis. Sugerimos role-plays desafiadores, prática com falantes nativos e estudo de expressões idiomáticas do contexto médico. Investir em leitura de artigos científicos simplificados também ajuda. Com dedicação, o nível avançado será atingido com segurança.',
+            'O resultado indica nível intermediário alto. Sua fala foi organizada, com boa fluidez e vocabulário adequado para o contexto da consulta. Você conseguiu encadear ideias com naturalidade e responder perguntas de forma estruturada. Os erros ainda aparecem, mas são pontuais e não comprometem a comunicação. Para o próximo passo, sugerimos focar em precisão gramatical, ampliação de vocabulário avançado e maior naturalidade na entonação. Praticar com falantes experientes, assistir a conteúdos autênticos sem legenda e revisar pontos gramaticais específicos são estratégias eficazes. Mantenha o ritmo de prática atual e adicione desafios progressivos — a evolução para o nível avançado é questão de consistência.',
+            'Você demonstrou proficiência intermediária alta. A comunicação foi fluida, com frases bem construídas e vocabulário consistente. Conseguiu manter o diálogo em um ritmo natural, responder perguntas com clareza e transmitir informações relevantes sobre sua condição. Ainda há espaço para melhorar em precisão gramatical e naturalidade, mas o desempenho foi muito bom. Para chegar ao nível avançado, invista em vocabulário sofisticado, treine a espontaneidade em situações imprevisíveis e aumente a exposição a diferentes sotaques e contextos. Role-plays avançados e conversação com nativos são excelentes ferramentas. Continue com a dedicação atual — o próximo nível está próximo.'
+          ]
+        },
+        {
+          min: 70, code: 'C1', name: 'Avançado',
+          short: 'Comunicação fluente e espontânea. Vocabulário amplo e estruturas complexas.',
+          texts: [
+            'Seu desempenho na consulta demonstrou um nível avançado de proficiência em inglês. A comunicação foi fluida, espontânea e bem estruturada, com vocabulário amplo e uso natural de estruturas complexas. Você conseguiu transmitir ideias com precisão, adaptar o discurso ao contexto e responder perguntas com naturalidade. Pequenos desvios gramaticais ou de entonação podem ocorrer, mas não comprometem a clareza nem a fluidez. Para consolidar e chegar ao nível de proficiência plena, sugerimos exposição contínua a conteúdos autênticos (palestras, podcasts, artigos científicos) e prática regular em contextos desafiadores. Investir em nuances culturais e expressões idiomáticas avançadas enriquece ainda mais o repertório. Excelente desempenho.',
+            'O resultado indica proficiência avançada. Sua comunicação foi fluente, bem organizada e natural, com vocabulário sofisticado e estruturas gramaticais complexas. Você demonstrou segurança ao transmitir informações detalhadas e ao responder perguntas elaboradas, mantendo coesão e coerência ao longo da conversa. A entonação e o ritmo foram adequados, contribuindo para a naturalidade da fala. Para o próximo nível, sugerimos aprofundar nuances culturais, ampliar o repertório de expressões idiomáticas e continuar praticando em contextos profissionais variados. Exposição a conteúdos autênticos e conversação com nativos são fundamentais. Seu desempenho foi excelente — continue investindo nesse patamar.',
+            'Você demonstrou um domínio avançado do idioma. A fala foi fluida, precisa e adaptada ao contexto, com vocabulário amplo e uso natural de estruturas complexas. Conseguiu manter o ritmo da consulta com segurança, explicar detalhes com clareza e responder perguntas elaboradas com naturalidade. A comunicação foi eficaz em todos os momentos, com desvios mínimos que não comprometeram a compreensão. Para alcançar a proficiência plena, sugerimos investir em nuances culturais, expressões idiomáticas avançadas e prática em contextos ainda mais desafiadores. Exposição contínua a conteúdo autêntico e interação com falantes nativos são estratégias eficazes. Excelente resultado — mantenha o nível de prática.',
+            'O resultado aponta proficiência avançada em inglês. Sua comunicação foi marcada por fluidez, naturalidade e precisão, com vocabulário amplo e estruturas gramaticais complexas bem utilizadas. Você conseguiu adaptar o discurso ao contexto médico, transmitir informações detalhadas com clareza e responder perguntas elaboradas sem dificuldade. A entonação e o ritmo contribuíram para uma comunicação eficaz e agradável. Para consolidar o nível de proficiência plena, invista em expressões idiomáticas avançadas, nuances culturais e prática regular com falantes nativos. Leitura de artigos científicos e participação em congressos em inglês são ótimas oportunidades de aprimoramento. Parabéns pelo desempenho.'
+          ]
+        },
+        {
+          min: 85, code: 'C2', name: 'Proficiente',
+          short: 'Domínio quase nativo. Compreensão plena e expressão sofisticada.',
+          texts: [
+            'Sua participação na consulta demonstrou proficiência plena em inglês. A comunicação foi marcada por fluidez nativa, precisão vocabular e naturalidade em todos os momentos. Você utilizou estruturas sofisticadas, adaptou o discurso ao contexto com facilidade e transmitiu ideias complexas com clareza e elegância. A entonação, o ritmo e a escolha lexical foram impecáveis. Para manter e aprimorar esse patamar, sugerimos exposição contínua a conteúdos autênticos de alta complexidade (palestras técnicas, artigos científicos, debates) e prática regular em contextos profissionais desafiadores. Investir em nuances culturais e expressões idiomáticas sofisticadas enriquece ainda mais o repertório. Desempenho excepcional — continue assim.',
+            'O resultado indica proficiência plena em inglês. Sua comunicação foi sofisticada, precisa e natural, com vocabulário amplo e estruturas gramaticais complexas utilizadas com maestria. Você demonstrou domínio total do idioma em contextos profissionais, adaptando o discurso conforme necessário e transmitindo informações com clareza e profundidade. A entonação e o ritmo foram impecáveis, contribuindo para uma comunicação eficaz e elegante. Para manter esse nível, sugerimos exposição contínua a conteúdos de alta complexidade e prática em contextos profissionais variados. Investir em nuances culturais e expressões idiomáticas avançadas enriquece ainda mais o repertório. Desempenho excepcional.',
+            'Seu desempenho foi de proficiência plena. A fala foi fluida, natural e precisa, com vocabulário sofisticado e uso magistral de estruturas complexas. Você demonstrou compreensão total do contexto da consulta, adaptando o discurso com elegância e transmitindo informações detalhadas com clareza. A entonação, o ritmo e a escolha lexical foram exemplares. Para consolidar esse patamar, sugerimos investir em conteúdos autênticos de alta complexidade e em prática regular com falantes nativos em contextos profissionais. Expressões idiomáticas sofisticadas e nuances culturais são excelentes áreas de aprofundamento. Parabéns pelo desempenho excepcional — continue com a dedicação atual.',
+            'O resultado aponta proficiência plena em inglês. Sua comunicação foi de nível quase nativo, com fluidez, precisão e naturalidade em todos os momentos. Você utilizou estruturas complexas e vocabulário sofisticado com maestria, adaptando o discurso ao contexto médico com segurança e elegância. A entonação e o ritmo foram impecáveis, e a comunicação fluiu sem esforço. Para manter e aprimorar esse patamar, invista em exposição contínua a conteúdos autênticos de alta complexidade e em prática regular em contextos profissionais desafiadores. Nuances culturais e expressões idiomáticas avançadas são áreas naturais de aprofundamento. Desempenho excepcional — parabéns.'
+          ]
+        }
+      ];
+
+      // ========== STORAGE KEYS ==========
+      var REPORT_SAVED_KEY = 'consultReportSaved';
+      var ATTEMPTS_KEY = 'consultAttempts';
+      var BLOCK_KEY = 'consultBlockedUntil';
+
+      // ========== STATE ==========
+      var data = null;
+      try {
+        var raw = sessionStorage.getItem('consultReport');
+        if (raw) {
+          data = JSON.parse(raw);
+          sessionStorage.removeItem('consultReport');
+        }
+      } catch (e) { data = null; }
+
+      if (!data) {
+        // Sem dados novos — tenta restaurar relatório salvo
+        try {
+          var saved = localStorage.getItem(REPORT_SAVED_KEY);
+          if (saved) data = JSON.parse(saved);
+        } catch (e) { data = null; }
+      }
+
+      // Fallback de demonstração
+      if (!data) {
+        data = {
+          durationMs: 95000,
+          messages: [
+            'Hello doctor, good morning.',
+            'I have been feeling pain in my chest for two days.',
+            'Sometimes I also have headache and a little fever.',
+            'I am taking medication for blood pressure.',
+            'Do you want me to take any exam?'
+          ]
+        };
+      }
+
+      // ========== CONTROLE DE TENTATIVAS / BLOQUEIO ==========
+      function getAttempts() {
+        try { return parseInt(localStorage.getItem(ATTEMPTS_KEY) || '0', 10) || 0; }
+        catch (e) { return 0; }
+      }
+      function setAttempts(n) { try { localStorage.setItem(ATTEMPTS_KEY, String(n)); } catch (e) {} }
+      function getBlockedUntil() {
+        try { return parseInt(localStorage.getItem(BLOCK_KEY) || '0', 10) || 0; }
+        catch (e) { return 0; }
+      }
+      function setBlockedUntil(ts) { try { localStorage.setItem(BLOCK_KEY, String(ts)); } catch (e) {} }
+      function clearAll() {
+        try {
+          localStorage.removeItem(BLOCK_KEY);
+          localStorage.removeItem(ATTEMPTS_KEY);
+          localStorage.removeItem(REPORT_SAVED_KEY);
+        } catch (e) {}
+      }
+      function isBlocked() {
+        var until = getBlockedUntil();
+        if (!until) return false;
+        if (Date.now() < until) return true;
+        clearAll();
+        return false;
+      }
+      function blockedRemainingText() {
+        var until = getBlockedUntil();
+        var ms = Math.max(0, until - Date.now());
+        var h = Math.floor(ms / 3600000);
+        var m = Math.floor((ms % 3600000) / 60000);
+        if (h > 0) return h + 'h ' + m + 'min';
+        return m + ' min';
+      }
+
+      // ========== HELPERS ==========
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+      function fmtTime(sec) {
+        var m = Math.floor(sec / 60);
+        var s = Math.floor(sec % 60);
+        return pad(m) + ':' + pad(s);
+      }
+      function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+      function getText(m) {
+        if (!m) return '';
+        if (typeof m === 'string') return m;
+        return m.text || m.content || m.transcript || m.message || '';
+      }
+
+      // ========== CÁLCULO DO SCORE ==========
+      function computeReport(input) {
+        var durationSec = Math.max(0, (input.durationMs || 0) / 1000);
+        var messages = (input.messages || []).map(getText).filter(function (t) { return t && t.trim(); });
+        var fullText = messages.join(' ');
+        var words = fullText.toLowerCase().match(/[a-zà-ú']+/g) || [];
+        var totalWords = words.length;
+
+        var sentences = fullText.split(/[.!?]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+        var avgSentence = sentences.length ? (totalWords / sentences.length) : 0;
+
+        var uniq = {};
+        var uniqCount = 0;
+        for (var i = 0; i < words.length; i++) {
+          if (!uniq[words[i]]) { uniq[words[i]] = 1; uniqCount++; }
+        }
+        var diversity = totalWords ? (uniqCount / totalWords) : 0;
+
+        var foundKeywords = [];
+        for (var k = 0; k < KEYWORDS.length; k++) {
+          var kw = KEYWORDS[k];
+          if (fullText.toLowerCase().indexOf(kw) !== -1) foundKeywords.push(kw);
+        }
+        var kwRatio = KEYWORDS.length ? (foundKeywords.length / KEYWORDS.length) : 0;
+
+        var sTime      = clamp(durationSec / EXPECTED_TIME_SEC, 0, 1);
+        var sWords     = clamp(totalWords / EXPECTED_WORDS, 0, 1);
+        var sSentence  = clamp(avgSentence / 12, 0, 1);
+        var sDiversity = clamp(diversity / 0.6, 0, 1);
+        var sKeywords  = clamp(kwRatio * 1.4, 0, 1);
+
+        var score =
+          0.20 * sTime +
+          0.25 * sWords +
+          0.20 * sSentence +
+          0.15 * sDiversity +
+          0.20 * sKeywords;
+
+        var scorePct = Math.round(score * 100);
+
+        var level = LEVELS[0];
+        for (var l = 0; l < LEVELS.length; l++) {
+          if (scorePct >= LEVELS[l].min) level = LEVELS[l];
+        }
+
+        var variant = level.texts[Math.floor(Math.random() * level.texts.length)];
+
+        return {
+          scorePct: scorePct,
+          levelCode: level.code,
+          levelName: level.name,
+          levelShort: level.short,
+          variant: variant,
+          durationSec: durationSec,
+          totalWords: totalWords,
+          avgSentence: Math.round(avgSentence * 10) / 10,
+          diversityPct: Math.round(diversity * 100),
+          foundKeywords: foundKeywords,
+          messages: messages
+        };
+      }
+
+      // ========== RENDER ==========
+      function renderReport(r, attemptNumber) {
+        document.getElementById('level-code').textContent = r.levelCode;
+        document.getElementById('level-name').textContent = r.levelName + ' (' + r.levelCode + ')';
+        document.getElementById('level-desc').textContent = r.levelShort;
+
+        document.getElementById('score-value').textContent = r.scorePct + '%';
+        setTimeout(function () {
+          document.getElementById('score-fill').style.width = r.scorePct + '%';
+        }, 80);
+
+        document.getElementById('m-time').textContent = fmtTime(r.durationSec);
+        document.getElementById('m-words').textContent = r.totalWords;
+        document.getElementById('m-sentence').textContent = r.avgSentence + ' palavras';
+        document.getElementById('m-diversity').textContent = r.diversityPct + '%';
+
+        document.getElementById('eval-text').textContent = r.variant;
+
+        var approved = r.scorePct >= 55;
+        var statusBox = document.getElementById('status-box');
+        var statusTitle = document.getElementById('status-title');
+        var statusDesc = document.getElementById('status-desc');
+        var iconEl = statusBox.querySelector('.icon');
+
+        statusBox.classList.remove('approved', 'rejected', 'blocked');
+        document.getElementById('actions-approved').style.display = 'none';
+        document.getElementById('actions-rejected').style.display = 'none';
+        document.getElementById('actions-blocked').style.display = 'none';
+
+        if (approved) {
+          statusBox.classList.add('approved');
+          iconEl.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+          statusTitle.textContent = 'Aprovado!';
+          statusDesc.textContent = 'Parabéns, seu nível atende ao requisito mínimo (B2). Basta aguardar a publicação do seu perfil no site.';
+          document.getElementById('actions-approved').style.display = 'flex';
+          try {
+            localStorage.removeItem(BLOCK_KEY);
+            localStorage.removeItem(ATTEMPTS_KEY);
+          } catch (e) {}
+          return;
+        }
+
+        if (attemptNumber >= MAX_ATTEMPTS) {
+          setBlockedUntil(Date.now() + BLOCK_MS);
+          statusBox.classList.add('blocked');
+          iconEl.innerHTML = '<i class="fa-solid fa-lock"></i>';
+          statusTitle.textContent = 'Acesso bloqueado';
+          statusDesc.textContent = 'Você atingiu o limite de ' + MAX_ATTEMPTS + ' tentativas sem aprovação. Seu IP está bloqueado por 72 horas. Tente novamente após esse período.';
+          document.getElementById('actions-blocked').style.display = 'flex';
+        } else {
+          statusBox.classList.add('rejected');
+          iconEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+          statusTitle.textContent = 'Não aprovado';
+          statusDesc.textContent = 'Seu nível atual é inferior ao mínimo exigido (B2) para atendimento a pacientes reais. Você ainda tem ' + (MAX_ATTEMPTS - attemptNumber) + ' tentativa(s). Realize a consulta novamente.';
+          document.getElementById('actions-rejected').style.display = 'flex';
+        }
+      }
+
+      function renderBlockedOnly() {
+        var statusBox = document.getElementById('status-box');
+        var iconEl = statusBox.querySelector('.icon');
+        statusBox.classList.remove('approved', 'rejected');
+        statusBox.classList.add('blocked');
+        iconEl.innerHTML = '<i class="fa-solid fa-lock"></i>';
+        document.getElementById('level-code').textContent = '—';
+        document.getElementById('level-name').textContent = '—';
+        document.getElementById('level-desc').textContent = '—';
+        document.getElementById('score-value').textContent = '—';
+        document.getElementById('m-time').textContent = '—';
+        document.getElementById('m-words').textContent = '—';
+        document.getElementById('m-sentence').textContent = '—';
+        document.getElementById('m-diversity').textContent = '—';
+        document.getElementById('eval-text').textContent = 'Não foi possível gerar um novo relatório pois seu acesso está temporariamente bloqueado.';
+        document.getElementById('status-title').textContent = 'Acesso bloqueado';
+        document.getElementById('status-desc').textContent = 'Seu IP está bloqueado. Tempo restante: ' + blockedRemainingText() + '.';
+        document.getElementById('actions-blocked').style.display = 'flex';
+        document.getElementById('actions-approved').style.display = 'none';
+        document.getElementById('actions-rejected').style.display = 'none';
+      }
+
+      // ========== FLOW ==========
+      var isFreshRun = !!data && !localStorage.getItem(REPORT_SAVED_KEY);
+      // Marca se veio de consulta nova (sessionStorage) ou restore
+      var fromSession = false;
+      try { fromSession = !!sessionStorage.getItem('__fresh'); } catch (e) {}
+
+      // Detectar se é uma nova consulta: veio de sessionStorage OU não existe relatório salvo ainda
+      var hasSavedReport = false;
+      try { hasSavedReport = !!localStorage.getItem(REPORT_SAVED_KEY); } catch (e) {}
+
+      var isNewConsult = !hasSavedReport;
+
+      var loadingSub = document.getElementById('loading-sub');
+      var subTexts = [
+        'Analisando tempo de fala…',
+        'Contando palavras ditas…',
+        'Avaliando diversidade de vocabulário…',
+        'Cruzando palavras-chave médicas…',
+        'Publicando perfil…'
+      ];
+      var subIdx = 0;
+      var subInterval = setInterval(function () {
+        subIdx = (subIdx + 1) % subTexts.length;
+        loadingSub.textContent = subTexts[subIdx];
+      }, 700);
+
+      var PROCESS_MS = isNewConsult ? (3200 + Math.floor(Math.random() * 1200)) : 200;
+
+      setTimeout(function () {
+        clearInterval(subInterval);
+        document.getElementById('loading-card').style.display = 'none';
+        var content = document.getElementById('report-content');
+        content.classList.add('ready');
+
+        // Já bloqueado — mostra somente bloqueio
+        if (isBlocked()) {
+          renderBlockedOnly();
+          return;
+        }
+
+        // Se já existe relatório salvo → restaura sem contar nova tentativa
+        if (!isNewConsult) {
+          var saved = null;
+          try { saved = JSON.parse(localStorage.getItem(REPORT_SAVED_KEY)); } catch (e) {}
+          if (saved && saved.report) {
+            renderReport(saved.report, saved.attemptNumber || 1);
+            return;
+          }
+        }
+
+        // Nova consulta → conta tentativa, gera e salva
+        var attemptNumber = getAttempts() + 1;
+        setAttempts(attemptNumber);
+
+        var report = computeReport(data);
+        try {
+          localStorage.setItem(REPORT_SAVED_KEY, JSON.stringify({
+            report: report,
+            attemptNumber: attemptNumber
+          }));
+        } catch (e) {}
+
+        renderReport(report, attemptNumber);
+      }, PROCESS_MS);
+
+      document.getElementById('btn-finish').addEventListener('click', function () {
+        try { localStorage.removeItem(REPORT_SAVED_KEY); } catch (e) {}
+        window.location.href = 'obrigado.html';
+      });
+
+      document.getElementById('btn-retry').addEventListener('click', function () {
+        try { localStorage.removeItem(REPORT_SAVED_KEY); } catch (e) {}
+        window.location.href = 'index.html';
+      });
+
+      document.getElementById('btn-blocked').addEventListener('click', function () {
+        try { localStorage.removeItem(REPORT_SAVED_KEY); } catch (e) {}
+        window.location.href = 'index.html';
+      });
+    })();
+  </script>
+</body>
+</html>
