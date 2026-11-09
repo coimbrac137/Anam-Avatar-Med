@@ -1,16 +1,9 @@
-3D-Avatar-Sync/
+anam-med-english/
 │
+├── ESTRUTURA.txt
+├── LICENSE
+├── README.md
+├── eventosquedaparacontrolar.txt
 ├── index.html
-├── avatar.vrm
-└── README.md 
-
------------------------------1. Crossfade (Opacidade) - O mais fácil
-Você tem dois elementos <video> sobrepostos (um do idle, outro da fala).
-
-Quando a IA começa a falar, o vídeo de fala dá play() e sua opacidade vai de 0 para 1 em 0.4 segundos.
-
-O vídeo idle continua rodando por baixo (opacidade vai de 1 para 0).
-
-Quando a IA para, faz o inverso.
-
-Por que funciona: O cérebro não percebe o corte porque a transição de luz e sombra é diluída.
+├── obrigado.html
+└── relatorio.html
