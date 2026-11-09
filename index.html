@@ -21,9 +21,8 @@
 
   .page-content {
     flex: 1 1 auto;
-    display: flex; align-items: center; justify-content: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 20px;
-    padding-bottom: 0;
     min-height: 0;
   }
 
@@ -43,19 +42,21 @@
   #frances-avatar-wrap {
     position: relative;
     width: 100%;
-    max-width: 800px;
-    height: 100%;
-    min-height: calc(100vh - 95px - 95px - 20px);
+    max-width: 1000px;
+    height: calc(100vh - 95px - 95px - 40px - 70px);
+    max-height: 700px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
     background: transparent;
     display: flex;
+    margin: 0 auto;
   }
   @media (max-width: 480px) {
     #frances-avatar-wrap {
       width: 100%;
-      min-height: calc(100vh - 65px - 65px - 20px);
-      border-radius: 0;
+      height: calc(100vh - 65px - 65px - 40px - 60px);
+      max-height: none;
+      border-radius: 12px 12px 0 0;
     }
   }
 
@@ -71,6 +72,45 @@
     width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
+  }
+
+  #timer-bar {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    background: #0d0d0d;
+    color: #fff;
+    border-radius: 0 0 12px 12px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  @media (max-width: 480px) {
+    #timer-bar {
+      border-radius: 0 0 12px 12px;
+      padding: 12px 16px;
+      font-size: 18px;
+    }
+  }
+  #timer-bar i {
+    font-size: 18px;
+    opacity: 0.8;
+  }
+  #timer-bar .label {
+    font-size: 13px;
+    font-weight: 400;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  #timer-display {
+    font-variant-numeric: tabular-nums;
   }
 
   #end-modal {
@@ -121,6 +161,12 @@
         api-base-url="https://lab.anam.ai"
       ></anam-agent>
     </div>
+
+    <div id="timer-bar" class="notranslate" translate="no">
+      <i class="fa-regular fa-clock"></i>
+      <span class="label">Tempo</span>
+      <span id="timer-display">00:00</span>
+    </div>
   </div>
 
   <div id="end-modal" class="notranslate" translate="no">
@@ -139,13 +185,131 @@
     (function () {
       var modal = document.getElementById('end-modal');
       var closeBtn = document.getElementById('end-close');
+      var timerDisplay = document.getElementById('timer-display');
+
+      // Tempo limite da chamada em milissegundos (5 segundos para teste)
+      var CALL_DURATION_MS = 5 * 1000;
+      var endTimer = null;
+
+      // Cronômetro
+      var tickInterval = null;
+      var elapsedMs = 0;
+
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+      function formatTime(ms) {
+        var totalSec = Math.floor(ms / 1000);
+        var m = Math.floor(totalSec / 60);
+        var s = totalSec % 60;
+        return pad(m) + ':' + pad(s);
+      }
+
+      function startChronometer() {
+        stopChronometer();
+        elapsedMs = 0;
+        timerDisplay.textContent = formatTime(0);
+        tickInterval = setInterval(function () {
+          elapsedMs += 1000;
+          timerDisplay.textContent = formatTime(elapsedMs);
+        }, 1000);
+      }
+
+      function stopChronometer() {
+        if (tickInterval) {
+          clearInterval(tickInterval);
+          tickInterval = null;
+        }
+      }
+
+      // Procura recursivamente dentro de shadow roots pelo botão de encerrar (X)
+      function findEndButton(root) {
+        if (!root) return null;
+
+        var svgs = root.querySelectorAll ? root.querySelectorAll('svg') : [];
+        for (var i = 0; i < svgs.length; i++) {
+          var paths = svgs[i].querySelectorAll('path');
+          for (var j = 0; j < paths.length; j++) {
+            var d = paths[j].getAttribute('d') || '';
+            if (d.indexOf('M18 6L6 18') !== -1) {
+              var btn = svgs[i].closest('button, [role="button"], a');
+              if (btn) return btn;
+              return svgs[i].parentElement;
+            }
+          }
+        }
+
+        var candidates = root.querySelectorAll
+          ? root.querySelectorAll('button, [role="button"]')
+          : [];
+        for (var k = 0; k < candidates.length; k++) {
+          var label = (candidates[k].getAttribute('aria-label') || '') + ' ' +
+                      (candidates[k].getAttribute('title') || '');
+          if (/end|close|encerrar|sair|stop|hang|leave/i.test(label)) {
+            return candidates[k];
+          }
+        }
+
+        var all = root.querySelectorAll ? root.querySelectorAll('*') : [];
+        for (var m = 0; m < all.length; m++) {
+          if (all[m].shadowRoot) {
+            var found = findEndButton(all[m].shadowRoot);
+            if (found) return found;
+          }
+        }
+        return null;
+      }
+
+      function encerrarChamada() {
+        var widget = document.querySelector('anam-agent');
+        var clicked = false;
+
+        if (widget) {
+          try {
+            var btn = findEndButton(widget.shadowRoot || widget);
+            if (btn) {
+              btn.click();
+              clicked = true;
+              console.log('botão X clicado via shadow DOM');
+            }
+          } catch (err) {
+            console.log('erro ao procurar botão X:', err);
+          }
+
+          if (!clicked) {
+            try {
+              if (typeof widget.endSession === 'function') {
+                widget.endSession();
+                clicked = true;
+              } else if (typeof widget.stop === 'function') {
+                widget.stop();
+                clicked = true;
+              }
+            } catch (err) {
+              console.log('erro ao encerrar via API:', err);
+            }
+          }
+        }
+
+        setTimeout(function () {
+          modal.classList.add('show');
+        }, 400);
+      }
 
       function attach() {
         var widget = document.querySelector('anam-agent');
         if (!widget) { setTimeout(attach, 300); return; }
 
+        widget.addEventListener('anam-agent:session-started', function (e) {
+          console.log('sessão iniciada:', e.detail);
+          startChronometer();
+          if (endTimer) clearTimeout(endTimer);
+          endTimer = setTimeout(encerrarChamada, CALL_DURATION_MS);
+        });
+
         widget.addEventListener('anam-agent:session-ended', function (e) {
           console.log('sessão encerrada:', e.detail);
+          stopChronometer();
+          if (endTimer) { clearTimeout(endTimer); endTimer = null; }
           modal.classList.add('show');
         });
       }
