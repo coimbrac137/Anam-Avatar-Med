@@ -9,7 +9,7 @@ O **Anam Med English** é uma aplicação web que utiliza avatares interativos d
 A plataforma captura a fala do médico durante a simulação, processa as transcrições em tempo real e gera um relatório detalhado com base em métricas linguísticas.
 
 ## ⚙️ Como Funciona
-
+  
 1. **Simulação:** O médico interage com um paciente virtual (avatar) em inglês através do widget da Anam AI.
 2. **Captura:** O sistema escuta e captura as transcrições da conversa via eventos do widget.
 3. **Avaliação:** A plataforma calcula o score com base em cinco pilares:
