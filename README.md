@@ -3,7 +3,7 @@
 Plataforma de triagem e validação de proficiência em inglês para médicos e profissionais da saúde que desejam atuar no atendimento a pacientes reais.
 
 ## 📌 Sobre o Projeto
-
+  
 O **Anam Med English** é uma aplicação web que utiliza avatares interativos de Inteligência Artificial (Anam AI) para simular consultas médicas reais em inglês. O objetivo é avaliar, de forma automatizada e segura, a capacidade de comunicação do profissional de saúde antes de sua entrada no mercado internacional.
 
 A plataforma captura a fala do médico durante a simulação, processa as transcrições em tempo real e gera um relatório detalhado com base em métricas linguísticas.
